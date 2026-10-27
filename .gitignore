@@ -1,0 +1,25 @@
+# Build output
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Local secrets and environment
+.env
+*.env.local
+application-local.properties
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+.springBeans
+.sts4-cache/
+bin/
+
+# OS / logs
+.DS_Store
+*.log
+_to_delete/

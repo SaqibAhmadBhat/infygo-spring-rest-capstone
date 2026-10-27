@@ -1,0 +1,773 @@
+{
+  "info": {
+    "name": "InfyGo Spring REST Capstone",
+    "description": "Run folders in order. Base URL includes the mandatory /InfyGo context path. Demo flights are seeded automatically. Payment uses synthetic card data only.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// journeyDate defaults to today + 3 days (a seeded demo date); cardYear to next year.",
+          "if (!pm.collectionVariables.get('journeyDate')) {",
+          "  const d = new Date(); d.setDate(d.getDate() + 3);",
+          "  const pad = n => String(n).padStart(2, '0');",
+          "  pm.collectionVariables.set('journeyDate', d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()));",
+          "}",
+          "pm.collectionVariables.set('cardYear', String(new Date().getFullYear() + 1));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/InfyGo"
+    },
+    {
+      "key": "journeyDate",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": "Demo@Pass#2026"
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": ""
+    },
+    {
+      "key": "flightId",
+      "value": ""
+    },
+    {
+      "key": "pnr",
+      "value": ""
+    },
+    {
+      "key": "totalFare",
+      "value": ""
+    },
+    {
+      "key": "cardYear",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Registration & login",
+      "item": [
+        {
+          "name": "Register (valid)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/register"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"name\": \"Asha Kumar\",\n  \"city\": \"Chennai\",\n  \"email\": \"{{email}}\",\n  \"phone\": \"+919876543210\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const n = Date.now() % 1000000;",
+                  "pm.collectionVariables.set('userId', 'demo' + n);",
+                  "pm.collectionVariables.set('email', 'demo' + n + '@example.com');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('No password in response', () => pm.expect(pm.response.json()).to.not.have.property('password'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register duplicate (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/register"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"name\": \"Asha Kumar\",\n  \"city\": \"Chennai\",\n  \"email\": \"{{email}}\",\n  \"phone\": \"+919876543210\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register weak password (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/register"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"weakpw01\",\n  \"name\": \"Asha Kumar\",\n  \"city\": \"Chennai\",\n  \"email\": \"weak@example.com\",\n  \"phone\": \"+919876543210\",\n  \"password\": \"password1\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register invalid email (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/register"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"bademail1\",\n  \"name\": \"Asha Kumar\",\n  \"city\": \"Chennai\",\n  \"email\": \"not-an-email\",\n  \"phone\": \"+919876543210\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (valid)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/login"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login wrong password (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/login"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"password\": \"Wrong@Pass1\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Flights",
+      "item": [
+        {
+          "name": "Source cities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/flights/sources"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Destination cities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/flights/destinations"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search (matrix parameters)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/flights/search;source=Chennai;destination=Delhi;journeyDate={{journeyDate}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const flights = pm.response.json();",
+                  "pm.test('At least one flight (demo seed data)', () => pm.expect(flights.length).to.be.above(0));",
+                  "if (flights.length) { pm.collectionVariables.set('flightId', flights[0].flightId); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search with filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/flights/search;source=Chennai;destination=Delhi;journeyDate={{journeyDate}};airline=Kaveri%20Air;departureFrom=05:00;departureTo=12:00;minPrice=1000;maxPrice=8000"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search (path-segment form)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/flights/Chennai/Delhi/{{journeyDate}};maxPrice=5000"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search past date (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/flights/search;source=Chennai;destination=Delhi;journeyDate=2020-01-01"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search bad date format (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/flights/search;source=Chennai;destination=Delhi;journeyDate=01-12-2030"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search missing matrix parameter (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/flights/search;source=Chennai;destination=Delhi"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Booking",
+      "item": [
+        {
+          "name": "Book (matrix parameters)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/book/tickets;flightId={{flightId}};userId={{userId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passengers\": [\n    {\n      \"passengerName\": \"Asha Kumar\",\n      \"passengerAge\": 34,\n      \"passengerGender\": \"Female\"\n    },\n    {\n      \"passengerName\": \"Ravi Kumar\",\n      \"passengerAge\": 36,\n      \"passengerGender\": \"Male\"\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const t = pm.response.json();",
+                  "pm.test('Seats = passengers', () => pm.expect(t.noOfSeats).to.eql(2));",
+                  "pm.collectionVariables.set('pnr', t.pnr);",
+                  "pm.collectionVariables.set('totalFare', t.totalFare);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Book (path-segment form)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/book/{{flightId}}/{{userId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passengers\": [\n    {\n      \"passengerName\": \"Asha Kumar\",\n      \"passengerAge\": 34,\n      \"passengerGender\": \"Female\"\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Book empty passenger list (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/book/tickets;flightId={{flightId}};userId={{userId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passengers\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Book invalid passenger (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/book/tickets;flightId={{flightId}};userId={{userId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passengers\": [\n    {\n      \"passengerName\": \"\",\n      \"passengerAge\": 200,\n      \"passengerGender\": \"x\"\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Book unknown flight (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/book/tickets;flightId=XX000;userId={{userId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passengers\": [\n    {\n      \"passengerName\": \"Asha Kumar\",\n      \"passengerAge\": 34,\n      \"passengerGender\": \"Female\"\n    },\n    {\n      \"passengerName\": \"Ravi Kumar\",\n      \"passengerAge\": 36,\n      \"passengerGender\": \"Male\"\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get ticket by PNR",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/tickets/{{pnr}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Mock payment (synthetic card data only)",
+      "item": [
+        {
+          "name": "Pay wrong CVV (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/payment"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": {{pnr}},\n  \"cardNumber\": \"TESTCARD00003456\",\n  \"cardHolderName\": \"Asha Kumar\",\n  \"cvv\": \"12\",\n  \"apin\": \"4321\",\n  \"expiryMonth\": \"Dec\",\n  \"expiryYear\": \"{{cardYear}}\",\n  \"totalBill\": {{totalFare}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay expired card (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/payment"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": {{pnr}},\n  \"cardNumber\": \"TESTCARD00003456\",\n  \"cardHolderName\": \"Asha Kumar\",\n  \"cvv\": \"123\",\n  \"apin\": \"4321\",\n  \"expiryMonth\": \"Dec\",\n  \"expiryYear\": \"2020\",\n  \"totalBill\": {{totalFare}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay wrong total bill (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/payment"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": {{pnr}},\n  \"cardNumber\": \"TESTCARD00003456\",\n  \"cardHolderName\": \"Asha Kumar\",\n  \"cvv\": \"123\",\n  \"apin\": \"4321\",\n  \"expiryMonth\": \"Dec\",\n  \"expiryYear\": \"{{cardYear}}\",\n  \"totalBill\": 1.00\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay (valid)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/payment"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": {{pnr}},\n  \"cardNumber\": \"TESTCARD00003456\",\n  \"cardHolderName\": \"Asha Kumar\",\n  \"cvv\": \"123\",\n  \"apin\": \"4321\",\n  \"expiryMonth\": \"Dec\",\n  \"expiryYear\": \"{{cardYear}}\",\n  \"totalBill\": {{totalFare}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Card is masked', () => pm.expect(pm.response.json().maskedCardNumber).to.match(/^X{12}/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay again (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infygo/payment"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": {{pnr}},\n  \"cardNumber\": \"TESTCARD00003456\",\n  \"cardHolderName\": \"Asha Kumar\",\n  \"cvv\": \"123\",\n  \"apin\": \"4321\",\n  \"expiryMonth\": \"Dec\",\n  \"expiryYear\": \"{{cardYear}}\",\n  \"totalBill\": {{totalFare}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
