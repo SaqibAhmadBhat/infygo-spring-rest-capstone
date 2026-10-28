@@ -1,136 +1,320 @@
-# InfyGo – Spring REST Flight Booking (Capstone)
+# Spring REST Transport & Logistic Domain Capstone - InfyGo
 
-Infosys Springboard · Naan Mudhalvan / TNSkills · Semester 7 capstone.
+[![CI](https://github.com/SaqibAhmadBhat/infygo-spring-rest-capstone/actions/workflows/ci.yml/badge.svg)](https://github.com/SaqibAhmadBhat/infygo-spring-rest-capstone/actions/workflows/ci.yml)
+[![GitHub Pages](https://github.com/SaqibAhmadBhat/infygo-spring-rest-capstone/actions/workflows/pages.yml/badge.svg)](https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/)
+[![Java](https://img.shields.io/badge/Java-17-orange?logo=openjdk)](https://openjdk.org/projects/jdk/17/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen?logo=springboot)](https://spring.io/projects/spring-boot)
+[![License: Academic](https://img.shields.io/badge/License-Academic-blue)](LICENSE)
 
-InfyGo is a flight ticket booking application. It was originally written with Spring MVC and is re-implemented here as a **Spring Boot REST API**. It covers registration, login, source and destination lookup, flight search with filters, multi-passenger booking with PNR generation and a **mock** payment.
+> **🎓 Academic project** — Infosys Springboard · Naan Mudhalvan Capstone  
+> This is **not** a commercial airline-booking service. The payment flow is a mock implementation.
 
-| Item | Value |
-|---|---|
-| Context path | `/InfyGo` (mandatory) |
-| Base URL (default port) | `http://localhost:8080/InfyGo/infygo/...` |
-| Database schema | `infygo` (MySQL 8; H2 for tests and a zero-install demo) |
-| Swagger UI | `http://localhost:8080/InfyGo/swagger-ui.html` |
-| Health | `http://localhost:8080/InfyGo/actuator/health` |
+---
 
-## Technology and version choices
+## 🌐 Presentation
 
-| Component | Version | Why |
-|---|---|---|
-| Java | 17 (LTS) | The PS sets a minimum of Java 8. Spring Boot 3 needs Java 17 or later. |
-| Spring Boot | 3.5.6 | Jakarta EE 10 APIs (`jakarta.validation`, `jakarta.persistence`); only Jakarta APIs are used, never `javax`. |
-| Spring Data JPA / Hibernate | 6.x (managed by Boot) | Persistence layer required by the PS |
-| Flyway | managed by Boot | Repeatable, versioned schema creation (no `ddl-auto=update`) |
-| MySQL | 8.x | PS database; H2 2.x in MySQL mode for tests |
-| springdoc-openapi | 2.8.9 | Swagger UI / OpenAPI |
-| Maven | 3.9.9 via the included Maven Wrapper (`./mvnw`) | No separate Maven install needed |
+**[▶ View the animated project presentation](https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/)**
 
-Spring Boot 3.5 was chosen as a stable line whose APIs are well established. Check the open-source support status at spring.io before submission. Moving to Spring Boot 4 would require changes (for example Jackson 3 and modular test starters), so it is left as future work.
+---
 
-## Quick start (no database install: H2 profile)
+## 📋 Project Overview
+
+InfyGo is a Spring Boot REST API capstone for the **Transport & Logistic Domain**, implementing a complete flight search and booking workflow. The API supports:
+
+- User registration and login with BCrypt password hashing
+- Flight search via **matrix parameters** (`/flights/search;source=X;destination=Y;journeyDate=Z`)
+- Seat booking, passenger capture, mock payment processing
+- PNR-based ticket retrieval
+- Full JSR-380 input validation with descriptive error messages
+- Swagger / OpenAPI documentation
+
+**Application base URL:** `http://localhost:8080/InfyGo`  
+**Swagger UI:** `http://localhost:8080/InfyGo/swagger-ui/index.html`
+
+---
+
+## ✨ Features
+
+| # | Feature | Endpoint |
+|---|---------|----------|
+| 1 | User registration (BCrypt, validated) | `POST /infygo/register` |
+| 2 | User login (password never returned) | `POST /infygo/login` |
+| 3 | List source cities | `GET /infygo/flights/sources` |
+| 4 | List destination cities | `GET /infygo/flights/destinations` |
+| 5 | Flight search with matrix parameters | `GET /infygo/flights/search;source=…;destination=…;journeyDate=…` |
+| 6 | Book seats (matrix parameters) | `POST /infygo/book/tickets;flightId=…;userId=…` |
+| 7 | Process mock payment | `POST /infygo/payment` |
+| 8 | Retrieve ticket by PNR | `GET /infygo/tickets/{pnr}` |
+| 9 | Health check | `GET /InfyGo/actuator/health` |
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Language | Java 17 |
+| Framework | Spring Boot 3.5.6 |
+| ORM | Spring Data JPA + Hibernate 6.6 |
+| DB Migration | Flyway |
+| Production DB | MySQL 8.4 (Docker) |
+| Test DB | H2 (in-memory) |
+| Security | BCrypt password hashing |
+| Docs | Springdoc OpenAPI (Swagger UI) |
+| Testing | JUnit 5, Spring Boot Test |
+| Build | Maven (Maven Wrapper `./mvnw`) |
+| Container | Docker Compose |
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     HTTP Client                          │
+│          (Browser / Postman / Integration Tests)         │
+└────────────────────────┬────────────────────────────────┘
+                         │ REST (JSON + Matrix Params)
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│            Spring Boot — context path /InfyGo            │
+│                                                          │
+│  UserController   FlightController   BookingController   │
+│  PaymentController            TicketController           │
+└────────────────────────┬────────────────────────────────┘
+                         │ Spring Data JPA
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│                   Hibernate 6.6 / JPA                    │
+└────────────────┬────────────────────┬───────────────────┘
+                 │                    │
+       (production)             (tests / CI)
+         MySQL 8.4                   H2
+       Docker Compose          (in-memory, auto)
+```
+
+**Flyway** manages schema migrations. The single migration `V1__init.sql` creates
+all five tables and seeds 84 fictional demo flights.
+
+---
+
+## 🗃️ Database Design
+
+Five tables (schema defined in `src/main/resources/db/migration/V1__init.sql`):
+
+| Table | Description |
+|-------|-------------|
+| `User_Details` | Registered users (password hashed with BCrypt) |
+| `Flight_Details` | Flight inventory with source, destination, fare, seat count |
+| `Ticket_Details` | Bookings — PNR, flight, user, journey date, status |
+| `Passenger_Details` | Passengers per ticket (name, age, gender) |
+| `Creditcard_Details` | Mock payment record (card number masked, CVV/PIN never stored) |
+
+> **Security:** Card numbers are stored as masked strings (`XXXXXXXXXXXX1234`).  
+> CVV and APIN are **never** persisted.
+
+---
+
+## 🚀 Local Setup
+
+### Option A — H2 (no database required)
 
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
+git clone https://github.com/SaqibAhmadBhat/infygo-spring-rest-capstone.git
+cd infygo-spring-rest-capstone
+
+# Run the full test suite (uses H2 automatically)
+./mvnw clean verify
 ```
 
-Fictional demo flights are seeded automatically for today + 3, 7, 14 and 30 days. Open Swagger UI or import `postman/InfyGo.postman_collection.json`.
+Expected output: `BUILD SUCCESS · Tests run: 106, Failures: 0, Errors: 0`
 
-## Run with MySQL
+### Option B — MySQL with Docker Compose
 
-1. Create the schema and an application user (edit the placeholder password first):
-   ```bash
-   mysql -u root -p < database/mysql/01_create_database_and_user.sql
-   ```
-   Alternatively, run `cp .env.example .env`, edit it, then `docker compose up -d`.
-2. Export the connection settings (never commit real values):
-   ```bash
-   export DB_URL='jdbc:mysql://localhost:3306/infygo?serverTimezone=Asia/Kolkata&characterEncoding=UTF-8'
-   export DB_USERNAME=infygo_app
-   export DB_PASSWORD='your-local-password'
-   export SERVER_PORT=8080          # optional
-   ```
-3. Start the application. Flyway creates the tables (`src/main/resources/db/migration`) and Hibernate validates the mapping:
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-4. Optional: add the manual SQL seed with `mysql -u infygo_app -p infygo < database/mysql/02_seed_demo_flights.sql`.
-
-## Tests
+#### Prerequisites
+- Docker Desktop running
+- Java 17 installed
 
 ```bash
-./mvnw clean verify          # build and run all unit and integration tests (H2, no MySQL needed)
+# 1. Set up environment variables
+cp .env.example .env
+# Edit .env with your preferred database credentials
+
+# 2. Start MySQL
+docker compose up -d
+
+# 3. Start the application
+./mvnw spring-boot:run
+
+# 4. Verify
+curl http://localhost:8080/InfyGo/actuator/health
+# → {"status":"UP"}
 ```
 
-Reports are written to `target/surefire-reports`. See [docs/TESTING.md](docs/TESTING.md) for the test inventory and the results that have been verified.
+---
 
-## Main workflow (curl)
+## 🧪 Testing
 
 ```bash
-B=http://localhost:8080/InfyGo/infygo
-D=$(date -v+3d +%F 2>/dev/null || date -d '+3 day' +%F)    # macOS || Linux
+# Full test suite (H2, no external dependencies)
+./mvnw clean verify
 
-curl -s -X POST $B/register -H 'Content-Type: application/json' -d '{"userId":"asha01","name":"Asha Kumar","city":"Chennai","email":"asha@example.com","phone":"+919876543210","password":"Demo@Pass#2026"}'
-curl -s -X POST $B/login    -H 'Content-Type: application/json' -d '{"userId":"asha01","password":"Demo@Pass#2026"}'
-curl -s "$B/flights/sources"
-curl -s "$B/flights/search;source=Chennai;destination=Delhi;journeyDate=$D"
-curl -s "$B/flights/search;source=Chennai;destination=Delhi;journeyDate=$D;airline=Kaveri%20Air;maxPrice=5000"
-# use a flightId from the search result:
-curl -s -X POST "$B/book/tickets;flightId=<flightId>;userId=asha01" -H 'Content-Type: application/json' -d '{"passengers":[{"passengerName":"Asha Kumar","passengerAge":34,"passengerGender":"Female"}]}'
-# use the pnr and totalFare from the booking response (synthetic card data only):
-curl -s -X POST $B/payment -H 'Content-Type: application/json' -d '{"pnr":<pnr>,"cardNumber":"TESTCARD00003456","cardHolderName":"Asha Kumar","cvv":"123","apin":"4321","expiryMonth":"Dec","expiryYear":"2030","totalBill":<totalFare>}'
+# Targeted test class
+./mvnw test -Dtest=FlightApiTest
+
+# With verbose output
+./mvnw test -Dtest=FlightApiTest -Dsurefire.useFile=false
 ```
 
-All names, e-mail addresses, passwords and card values above are fictional test data.
-
-## Matrix parameters
-
-The PS asks for matrix parameters on the search and booking routes, but its printed routes use path placeholders. Both forms are implemented and tested:
-
-| Requirement | Canonical matrix form | Printed route form |
-|---|---|---|
-| Search | `GET /infygo/flights/search;source=Chennai;destination=Delhi;journeyDate=2026-12-01[;airline=..;departureFrom=HH:mm;departureTo=HH:mm;minPrice=..;maxPrice=..]` | `GET /infygo/flights/Chennai/Delhi/2026-12-01[;airline=..;...]` |
-| Booking | `POST /infygo/book/tickets;flightId=KA101-261120;userId=asha01` | `POST /infygo/book/KA101-261120/asha01` |
-
-Spring MVC binds them with `@MatrixVariable`. Spring Boot 3 matches paths with `PathPatternParser`, which keeps the `;name=value` content, so no `removeSemicolonContent` configuration is needed. `ContextPathTest` confirms this over a real Tomcat connection as well as through MockMvc.
-
-## Security scope (please read)
-
-* Passwords are stored as **BCrypt** hashes. Responses never include hashes, and login failures do not reveal whether an account exists.
-* Login **verifies credentials only**, which is what the PS requires. No session or token is issued, so the other endpoints are not access-controlled. Issuing a token that the API never checked would be misleading. Adding Spring Security with JWT or a session is listed as future work.
-* **Payment is a mock.** No bank or gateway is contacted. CVV and PIN are validated and then discarded, and are never stored or logged. Only a masked card number (`XXXXXXXXXXXX3456`), the holder name, expiry and amount are stored. The diagram's `cvv` and `apin` columns stay in place for compatibility and are always NULL. A real system would use a PCI-DSS-compliant gateway and tokenisation, and would never let card data touch its own servers.
-* Database credentials come only from environment variables. `.env` is git-ignored.
-
-## Project structure
+**Verified results (CI run 2026-10-28):**
 
 ```
-src/main/java/com/infygo
-├── config/        Clock, BCrypt, OpenAPI, typed application properties
-├── controller/    REST controllers (no business logic)
-├── dto/           Request/response records with Bean Validation
-├── entity/        JPA entities for the prescribed tables
-├── exception/     Business exceptions + @RestControllerAdvice
-├── repository/    Spring Data repositories (atomic seat update)
-└── service/       Business rules, PNR generation, booking transaction, mock payment, demo seeding
-src/main/resources
-├── application.properties, application-h2.properties
-├── ValidationMessages.properties
-└── db/migration/V1__create_infygo_schema.sql
-docs/  postman/  database/  .github/workflows/
+Tests run: 106, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
 ```
 
-## Documentation
+---
 
-* [Requirement traceability](docs/PROJECT_REQUIREMENTS.md)
-* [Architecture](docs/ARCHITECTURE.md)
-* [ER diagram and schema](docs/ER_DIAGRAM.md)
-* [API reference](docs/API_DOCUMENTATION.md)
-* [Testing](docs/TESTING.md)
+## 🔑 Key API Examples
 
-## GitHub
+### Flight Search (matrix parameters)
 
-Suggested repository name: `infygo-spring-rest-capstone`.
-Suggested description: *Professional Infosys Springboard and Naan Mudhalvan Semester 7 capstone implementing the InfyGo flight booking REST API using Spring Boot, Spring Data JPA, MySQL, BCrypt password hashing, transactional booking, PNR generation, validation, mock payments, automated testing and API documentation.*
+```
+GET http://localhost:8080/InfyGo/infygo/flights/search;source=Chennai;destination=Delhi;journeyDate=2026-12-01
+```
+
+### Book Seats (matrix parameters)
+
+```
+POST http://localhost:8080/InfyGo/infygo/book/tickets;flightId=1;userId=5
+Content-Type: application/json
+
+{
+  "noOfPassengers": 2,
+  "passengers": [
+    {"name": "Alice Smith", "age": 30, "gender": "Female"},
+    {"name": "Bob Smith",   "age": 32, "gender": "Male"}
+  ]
+}
+```
+
+### Register User
+
+```
+POST http://localhost:8080/InfyGo/infygo/register
+Content-Type: application/json
+
+{
+  "userId": "user001",
+  "name": "Alice Smith",
+  "mobile": "9876543210",
+  "email": "alice@example.com",
+  "password": "Secure@123"
+}
+```
+
+---
+
+## 🔒 Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `SPRING_DATASOURCE_URL` | JDBC URL for MySQL |
+| `SPRING_DATASOURCE_USERNAME` | DB username |
+| `SPRING_DATASOURCE_PASSWORD` | DB password |
+
+See `.env.example` for all required variables. **Never commit `.env` to Git.**
+
+---
+
+## 🐳 Docker
+
+Build and run the backend as a container:
 
 ```bash
-git init && git add . && git status     # check that no .env or target/ is staged
-git commit -m "InfyGo Spring REST capstone: core API, tests and documentation"
+# Build the image (multi-stage: Maven build + JRE runtime)
+docker build -t infygo-api:latest .
+
+# Run with environment variables
+docker run -d \
+  --name infygo-api \
+  --env-file .env \
+  -e SPRING_DATASOURCE_URL="jdbc:mysql://host.docker.internal:3306/infygo" \
+  -p 8080:8080 \
+  infygo-api:latest
 ```
+
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for full deployment guidance including cloud options.
+
+---
+
+## 📁 Project Structure
+
+```
+infygo-spring-rest-capstone/
+├── src/
+│   ├── main/java/com/infygo/
+│   │   ├── controller/          # REST controllers
+│   │   ├── service/             # Business logic
+│   │   ├── repository/          # Spring Data JPA repositories
+│   │   ├── model/               # JPA entities
+│   │   ├── dto/                 # Request/response DTOs
+│   │   ├── config/              # Spring & OpenAPI configuration
+│   │   └── exception/           # Global exception handling
+│   ├── main/resources/
+│   │   ├── application.properties
+│   │   └── db/migration/V1__init.sql   # Flyway migration
+│   └── test/                    # JUnit integration tests
+├── presentation/                # React + Vite presentation website
+├── docs/                        # Architecture, API, ER, Testing, Deployment docs
+├── postman/                     # Postman collection
+├── database/                    # SQL scripts
+├── docker-compose.yml           # MySQL local setup
+├── Dockerfile                   # Multi-stage Docker build
+├── .env.example                 # Environment template
+└── .github/workflows/
+    ├── ci.yml                   # Java CI (Maven tests)
+    └── pages.yml                # GitHub Pages deployment
+```
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [`docs/API_DOCUMENTATION.md`](docs/API_DOCUMENTATION.md) | Full API reference |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture |
+| [`docs/ER_DIAGRAM.md`](docs/ER_DIAGRAM.md) | Entity-relationship diagram |
+| [`docs/TESTING.md`](docs/TESTING.md) | Test strategy and results |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Deployment guide |
+| [`docs/PROJECT_REQUIREMENTS.md`](docs/PROJECT_REQUIREMENTS.md) | Original requirements |
+
+---
+
+## 👥 Project Team
+
+**Infosys Springboard · Naan Mudhalvan Capstone**
+
+| # | Student ID | Name | Role |
+|---|-----------|------|------|
+| 1 | 950823104052 | **Saqib Ahmad Bhat** | Team Lead / Developer |
+| 2 | 950823104064 | Vijaya Kumar | Developer |
+| 3 | 950823104065 | Vinayagam S | Developer |
+| 4 | 950823104021 | Kannan P | Developer |
+| 5 | 950823104005 | Alagesh Pandi P | Developer |
+| 6 | 950823104007 | Aqib Majeed | Developer |
+
+---
+
+## ⚠️ Security Notes
+
+- Passwords are hashed with BCrypt and **never returned** in API responses
+- Credit card CVV and APIN are **never stored** — mock payment only
+- Card numbers are **masked** (`XXXXXXXXXXXX1234`) in storage
+- Keep `.env` out of version control at all times
+- Rotate any credentials that have been exposed in logs or terminal output
+
+---
+
+*© 2026 InfyGo Team — Infosys Springboard / Naan Mudhalvan Academic Project. All rights reserved.*
