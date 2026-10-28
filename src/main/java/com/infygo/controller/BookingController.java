@@ -5,6 +5,7 @@ import com.infygo.dto.TicketResponse;
 import com.infygo.exception.ResourceNotFoundException;
 import com.infygo.service.BookingService;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,7 +34,9 @@ public class BookingController {
      * POST /infygo/book/tickets;flightId=KA101-261120;userId=asha01   (passengers as JSON body)
      */
     @PostMapping("/book/{bookingKey}")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<TicketResponse> bookWithMatrixParameters(
+            @Parameter(description = "Must be 'tickets'", example = "tickets")
             @PathVariable("bookingKey") String bookingKey,
             @MatrixVariable(name = "flightId", pathVar = "bookingKey") String flightId,
             @MatrixVariable(name = "userId", pathVar = "bookingKey") String userId,
@@ -45,6 +49,7 @@ public class BookingController {
 
     /** Requirement 6, printed route shape: POST /infygo/book/{FlightId}/{UserId} */
     @PostMapping("/book/{flightId}/{userId}")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<TicketResponse> bookWithPathSegments(
             @PathVariable("flightId") String flightId,
             @PathVariable("userId") String userId,

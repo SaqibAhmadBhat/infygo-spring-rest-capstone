@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -25,6 +26,7 @@ public class PaymentController {
 
     /** Requirement 7: POST /infygo/payment (mock - synthetic card data only) */
     @PostMapping("/payment")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<PaymentResponse> pay(@Valid @RequestBody PaymentRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.pay(request));
     }

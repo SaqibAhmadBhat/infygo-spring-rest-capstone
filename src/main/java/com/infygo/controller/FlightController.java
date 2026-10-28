@@ -6,6 +6,7 @@ import com.infygo.dto.FlightResponse;
 import com.infygo.dto.FlightSearchRequest;
 import com.infygo.exception.ResourceNotFoundException;
 import com.infygo.service.FlightService;
+import io.swagger.v3.oas.annotations.Parameter;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.MatrixVariable;
@@ -42,14 +43,20 @@ public class FlightController {
      */
     @GetMapping(value = {"/{searchKey}", "/{searchKey}/**"})
     public List<FlightResponse> searchWithMatrixParameters(
+            @Parameter(description = "Must be 'search'", example = "search")
             @PathVariable("searchKey") String searchKey,
             @MatrixVariable(name = "source") String source,
             @MatrixVariable(name = "destination") String destination,
             @MatrixVariable(name = "journeyDate") String journeyDate,
+            @Parameter(description = "Airline filter", required = false)
             @MatrixVariable(name = "airline", required = false) String airline,
+            @Parameter(description = "Earliest departure time HH:mm", required = false)
             @MatrixVariable(name = "departureFrom", required = false) String departureFrom,
+            @Parameter(description = "Latest departure time HH:mm", required = false)
             @MatrixVariable(name = "departureTo", required = false) String departureTo,
+            @Parameter(description = "Minimum fare", required = false)
             @MatrixVariable(name = "minPrice", required = false) String minPrice,
+            @Parameter(description = "Maximum fare", required = false)
             @MatrixVariable(name = "maxPrice", required = false) String maxPrice) {
         if (!"search".equals(searchKey)) {
             throw new ResourceNotFoundException("request.search.segment", searchKey);
@@ -67,10 +74,15 @@ public class FlightController {
             @PathVariable("source") String source,
             @PathVariable("destination") String destination,
             @PathVariable("journeyDate") String journeyDate,
+            @Parameter(description = "Airline filter", required = false)
             @MatrixVariable(name = "airline", pathVar = "journeyDate", required = false) String airline,
+            @Parameter(description = "Earliest departure time HH:mm", required = false)
             @MatrixVariable(name = "departureFrom", pathVar = "journeyDate", required = false) String departureFrom,
+            @Parameter(description = "Latest departure time HH:mm", required = false)
             @MatrixVariable(name = "departureTo", pathVar = "journeyDate", required = false) String departureTo,
+            @Parameter(description = "Minimum fare", required = false)
             @MatrixVariable(name = "minPrice", pathVar = "journeyDate", required = false) String minPrice,
+            @Parameter(description = "Maximum fare", required = false)
             @MatrixVariable(name = "maxPrice", pathVar = "journeyDate", required = false) String maxPrice) {
         return flightService.searchFlights(new FlightSearchRequest(source, destination, journeyDate, airline,
                 departureFrom, departureTo, minPrice, maxPrice));

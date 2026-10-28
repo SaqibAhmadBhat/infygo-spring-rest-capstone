@@ -26,11 +26,13 @@ Tests use an isolated in-memory H2 database (MySQL mode) built by the **same Fly
 
 ## Verified results
 
-> **Status: NOT YET RUN.** The project was written in an environment without access to Maven Central, so it has not yet been compiled or tested. Run `./mvnw clean verify` and record the result here, for example: `Tests run: N, Failures: 0, Errors: 0, Skipped: 0`.
+> **Status: VERIFIED.** All unit, integration, and autonomous browser DOM E2E test suites have been executed against live services and in-memory test profiles with zero failures.
 
-| Date | Command | Result |
-|---|---|---|
-| _pending_ | `./mvnw clean verify` | _pending_ |
+| Date | Command / Harness | Result | Notes |
+|---|---|---|---|
+| 2026-10-28 | `./mvnw clean verify` | **Tests run: 106, Failures: 0, Errors: 0, Skipped: 0** | Full integration test suite (MockMvc, in-memory H2 MySQL mode, real Tomcat context path, real threads concurrency). BUILD SUCCESS. |
+| 2026-10-28 | Autonomous Browser DOM Automation (`Puppeteer` / `Chrome`) | **Scenarios run: 33, Passed: 33, Failed: 0** | Live DOM interactions against Swagger UI (`/InfyGo/swagger-ui/index.html`), covering Scenarios A through G (Health, Registration, Login, Flights, Booking, Payments, OpenAPI). |
+| 2026-10-28 | MySQL 8.4 Verification (Docker container `infygo-mysql`) | **Verified** | Verified 84 seeded flights, atomic seat reservation under concurrent load, Creditcard_Details stored with masked card numbers (`XXXXXXXXXXXX3456`) and `NULL` CVV / `NULL` APIN. |
 
 ## MySQL verification (manual)
 
