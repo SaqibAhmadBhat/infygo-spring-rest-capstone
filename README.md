@@ -4,7 +4,6 @@
 [![GitHub Pages](https://github.com/SaqibAhmadBhat/infygo-spring-rest-capstone/actions/workflows/pages.yml/badge.svg)](https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/)
 [![Java](https://img.shields.io/badge/Java-17-orange?logo=openjdk)](https://openjdk.org/projects/jdk/17/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen?logo=springboot)](https://spring.io/projects/spring-boot)
-[![License: Academic](https://img.shields.io/badge/License-Academic-blue)](LICENSE)
 
 > **🎓 Academic project** — Infosys Springboard · Naan Mudhalvan Capstone  
 > This is **not** a commercial airline-booking service. The payment flow is a mock implementation.
@@ -117,17 +116,27 @@ Five tables (schema defined in `src/main/resources/db/migration/V1__init.sql`):
 
 ## 🚀 Local Setup
 
-### Option A — H2 (no database required)
+### Option A — Zero-Install H2 Demo (No external database required)
 
 ```bash
 git clone https://github.com/SaqibAhmadBhat/infygo-spring-rest-capstone.git
 cd infygo-spring-rest-capstone
 
-# Run the full test suite (uses H2 automatically)
+# 1. Run the automated test suite (uses isolated H2 test profile)
 ./mvnw clean verify
+
+# 2. Start the application with the H2 demo runtime profile
+./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
 ```
 
-Expected output: `BUILD SUCCESS · Tests run: 106, Failures: 0, Errors: 0`
+Once the application is running:
+- **Actuator Health:** [`http://localhost:8080/InfyGo/actuator/health`](http://localhost:8080/InfyGo/actuator/health) → `{"status":"UP"}`
+- **Interactive Swagger UI:** [`http://localhost:8080/InfyGo/swagger-ui/index.html`](http://localhost:8080/InfyGo/swagger-ui/index.html)
+- **H2 Web Console:** [`http://localhost:8080/InfyGo/h2-console`](http://localhost:8080/InfyGo/h2-console)
+  *JDBC URL:* `jdbc:h2:mem:infygo` | *User Name:* `sa` | *Password:* *(empty)*
+
+> **Note:** The `h2` profile (`application-h2.properties`) automatically seeds demo flight data on boot.
+> The `test` profile is isolated and reserved strictly for automated testing (`./mvnw verify`).
 
 ### Option B — MySQL with Docker Compose
 
@@ -177,40 +186,84 @@ BUILD SUCCESS
 
 ## 🔑 Key API Examples
 
-### Flight Search (matrix parameters)
+### 1. Register User
 
-```
-GET http://localhost:8080/InfyGo/infygo/flights/search;source=Chennai;destination=Delhi;journeyDate=2026-12-01
-```
-
-### Book Seats (matrix parameters)
-
-```
-POST http://localhost:8080/InfyGo/infygo/book/tickets;flightId=1;userId=5
-Content-Type: application/json
-
-{
-  "noOfPassengers": 2,
-  "passengers": [
-    {"name": "Alice Smith", "age": 30, "gender": "Female"},
-    {"name": "Bob Smith",   "age": 32, "gender": "Male"}
-  ]
-}
-```
-
-### Register User
-
-```
+```http
 POST http://localhost:8080/InfyGo/infygo/register
 Content-Type: application/json
 
 {
   "userId": "user001",
   "name": "Alice Smith",
-  "mobile": "9876543210",
+  "city": "Chennai",
   "email": "alice@example.com",
+  "phone": "+919876543210",
   "password": "Secure@123"
 }
+```
+
+### 2. User Login
+
+```http
+POST http://localhost:8080/InfyGo/infygo/login
+Content-Type: application/json
+
+{
+  "userId": "user001",
+  "password": "Secure@123"
+}
+```
+
+### 3. Flight Search (Matrix Parameters)
+
+```http
+GET http://localhost:8080/InfyGo/infygo/flights/search;source=Chennai;destination=Delhi;journeyDate=2026-12-01
+```
+
+### 4. Book Seats (Matrix Parameters)
+
+```http
+POST http://localhost:8080/InfyGo/infygo/book/tickets;flightId=KA101-261120;userId=user001
+Content-Type: application/json
+
+{
+  "passengers": [
+    {
+      "passengerName": "Alice Smith",
+      "passengerAge": 30,
+      "passengerGender": "Female"
+    },
+    {
+      "passengerName": "Bob Smith",
+      "passengerAge": 32,
+      "passengerGender": "Male"
+    }
+  ]
+}
+```
+
+### 5. Process Mock Payment
+
+```http
+POST http://localhost:8080/InfyGo/infygo/payment
+Content-Type: application/json
+
+{
+  "pnr": 5474479,
+  "cardNumber": "TESTCARD00003456",
+  "cardHolderName": "Alice Smith",
+  "cvv": "123",
+  "apin": "4321",
+  "expiryMonth": "Dec",
+  "expiryYear": "2030",
+  "totalBill": 9700.00
+}
+```
+
+### 6. Retrieve Ticket by PNR
+
+```http
+GET http://localhost:8080/InfyGo/infygo/tickets/5474479
 ```
 
 ---
@@ -229,10 +282,10 @@ See `.env.example` for all required variables. **Never commit `.env` to Git.**
 
 ## 🐳 Docker
 
-Build and run the backend as a container:
+Build and run the backend as an OCI container:
 
 ```bash
-# Build the image (multi-stage: Maven build + JRE runtime)
+# Build the image (multi-stage: Maven build + minimal JRE runtime)
 docker build -t infygo-api:latest .
 
 # Run with environment variables
@@ -243,6 +296,17 @@ docker run -d \
   -p 8080:8080 \
   infygo-api:latest
 ```
+
+---
+
+## 🌐 Hosting & Deployment Status
+
+| Component | Status | Details |
+|---|---|---|
+| **Presentation Website** | **LIVE** | Automated deployment on GitHub Pages: [View Site](https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/) |
+| **Local Spring Boot API** | **OPERATIONAL** | Context path `/InfyGo` on port 8080 (`{"status":"UP"}`) |
+| **Container Image** | **READY** | Multi-stage `Dockerfile` with non-root security and health check |
+| **Public Backend API** | **PENDING** | Prepared for deployment; requires manual external cloud host & managed database |
 
 See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for full deployment guidance including cloud options.
 
@@ -263,7 +327,8 @@ infygo-spring-rest-capstone/
 │   │   └── exception/           # Global exception handling
 │   ├── main/resources/
 │   │   ├── application.properties
-│   │   └── db/migration/V1__init.sql   # Flyway migration
+│   │   ├── application-h2.properties # Zero-install demo profile
+│   │   └── db/migration/V1__init.sql # Flyway migration
 │   └── test/                    # JUnit integration tests
 ├── presentation/                # React + Vite presentation website
 ├── docs/                        # Architecture, API, ER, Testing, Deployment docs
@@ -296,14 +361,14 @@ infygo-spring-rest-capstone/
 
 **Infosys Springboard · Naan Mudhalvan Capstone**
 
-| # | Student ID | Name | Role |
-|---|-----------|------|------|
-| 1 | 950823104052 | **Saqib Ahmad Bhat** | Team Lead / Developer |
-| 2 | 950823104064 | Vijaya Kumar | Developer |
-| 3 | 950823104065 | Vinayagam S | Developer |
-| 4 | 950823104021 | Kannan P | Developer |
-| 5 | 950823104005 | Alagesh Pandi P | Developer |
-| 6 | 950823104007 | Aqib Majeed | Developer |
+| # | Student ID | Name |
+|:---:|:---:|:---|
+| 1 | 950823104052 | **Saqib Ahmad Bhat** |
+| 2 | 950823104064 | Vijaya Kumar |
+| 3 | 950823104065 | Vinayagam S |
+| 4 | 950823104021 | Kannan P |
+| 5 | 950823104005 | Alagesh Pandi P |
+| 6 | 950823104007 | Aqib Majeed |
 
 ---
 

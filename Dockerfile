@@ -8,7 +8,7 @@ WORKDIR /app
 # Copy Maven wrapper and POM first for layer-cache efficiency
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
-RUN ./mvnw dependency:go-offline -B
+RUN ./mvnw -B dependency:resolve
 
 # Copy source and build (skip tests – run them in CI, not in the Docker build)
 COPY src/ src/

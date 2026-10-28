@@ -17,22 +17,39 @@
 
 ---
 
-## 1. Local Development — H2
+## 1. Local Development — H2 (Zero-Install Demo)
 
-Run tests or start the app with the embedded H2 database.
-No external database is required.
+Run tests or start the app with the embedded H2 in-memory database.
+No external database or Docker setup is required.
+
+### Run Automated Tests (Isolated Test Profile)
+
+The test suite runs against an isolated, non-persistent test database (`application-test.properties`) with sample seed data disabled:
 
 ```bash
-# Run all tests
+# Run all automated tests (uses H2 test profile automatically)
 ./mvnw clean verify
-
-# Start the app with H2 (application-test.properties profile)
-./mvnw spring-boot:run -Dspring-boot.run.profiles=test
 ```
 
+### Run Application in Demo Mode (H2 Runtime Profile)
+
+To launch the running application with an in-memory H2 database seeded with demo flight data:
+
+```bash
+# Start the app with the H2 demo runtime profile
+./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
+```
+
+Once started, verify the running application:
+- **Actuator Health:** [`http://localhost:8080/InfyGo/actuator/health`](http://localhost:8080/InfyGo/actuator/health) (returns `{"status":"UP"}`)
+- **Swagger UI:** [`http://localhost:8080/InfyGo/swagger-ui/index.html`](http://localhost:8080/InfyGo/swagger-ui/index.html)
+- **H2 Console:** [`http://localhost:8080/InfyGo/h2-console`](http://localhost:8080/InfyGo/h2-console)
+  *JDBC URL:* `jdbc:h2:mem:infygo` | *User Name:* `sa` | *Password:* *(empty)*
+
 > [!NOTE]
-> The H2 console is available at `http://localhost:8080/InfyGo/h2-console`
-> when running with the test/H2 profile.
+> The `test` profile (`application-test.properties`) is reserved strictly for automated testing (`./mvnw verify`).
+> For local interactive evaluation, always use the `h2` profile (`application-h2.properties`).
+> Neither in-memory profile is intended for production deployment.
 
 ---
 
@@ -151,11 +168,21 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3
 
 ---
 
-## 5. Production Deployment Guidance
+## 5. Backend Deployment Guidance & Status
+
+### Deployment Status Summary
+
+| Component | Status | Details |
+|---|---|---|
+| **Presentation Website** | **LIVE** | Deployed on GitHub Pages via Actions: [View Site](https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/) |
+| **Local Spring Boot API** | **OPERATIONAL** | Context path `/InfyGo` running on port 8080 with H2 or MySQL |
+| **Docker Packaging** | **READY** | Multi-stage `Dockerfile` with non-root security and health check |
+| **Public Backend API** | **PENDING** | Prepared for deployment; requires manual cloud host & database provisioning |
 
 > [!IMPORTANT]
-> The steps below require a manually provisioned cloud account.
-> The project does **not** auto-deploy to any paid service.
+> The Spring Boot REST API is **not** currently hosted on a public cloud service.
+> Public deployment requires manually setting up an external application host (e.g. Railway, Render, Fly.io, AWS, GCP)
+> along with persistent MySQL database credentials supplied via environment variables.
 
 ### Option A: Railway / Render / Fly.io
 

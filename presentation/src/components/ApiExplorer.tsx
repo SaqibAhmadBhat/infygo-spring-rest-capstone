@@ -29,9 +29,12 @@ export const ApiExplorer: React.FC = () => {
         password: 'Demo@Pass#2026'
       }, null, 2),
       sampleResponse: JSON.stringify({
-        status: 201,
-        message: 'User asha01 registered successfully',
-        userId: 'asha01'
+        message: 'Registration successful',
+        userId: 'asha01',
+        name: 'Asha Kumar',
+        city: 'Chennai',
+        email: 'asha@example.com',
+        phone: '+919876543210'
       }, null, 2)
     },
     {
@@ -44,10 +47,10 @@ export const ApiExplorer: React.FC = () => {
         password: 'Demo@Pass#2026'
       }, null, 2),
       sampleResponse: JSON.stringify({
-        status: 200,
         message: 'Login successful',
         userId: 'asha01',
-        authenticated: true
+        name: 'Asha Kumar',
+        email: 'asha@example.com'
       }, null, 2)
     },
     {
@@ -56,12 +59,11 @@ export const ApiExplorer: React.FC = () => {
       category: 'FLIGHTS',
       description: 'Lists all unique departure airport cities with active flights in the inventory.',
       sampleResponse: JSON.stringify([
-        'Chennai',
-        'Mumbai',
-        'Delhi',
         'Bengaluru',
+        'Chennai',
+        'Delhi',
         'Hyderabad',
-        'Kolkata'
+        'Mumbai'
       ], null, 2)
     },
     {
@@ -70,12 +72,11 @@ export const ApiExplorer: React.FC = () => {
       category: 'FLIGHTS',
       description: 'Lists all unique arrival airport destination hubs in the inventory.',
       sampleResponse: JSON.stringify([
-        'Delhi',
-        'Mumbai',
-        'Kolkata',
-        'Goa',
+        'Bengaluru',
         'Chennai',
-        'Ahmedabad'
+        'Delhi',
+        'Hyderabad',
+        'Mumbai'
       ], null, 2)
     },
     {
@@ -86,27 +87,25 @@ export const ApiExplorer: React.FC = () => {
       sampleResponse: JSON.stringify([
         {
           flightId: 'KA101-261120',
-          flightName: 'Kaveri Air',
+          airlines: 'Kaveri Air',
           source: 'Chennai',
           destination: 'Delhi',
-          journeyDate: '2026-11-20',
-          departureTime: '06:15:00',
-          arrivalTime: '08:50:00',
+          flightAvailableDate: '2026-11-20',
+          departureTime: '06:30',
+          arrivalTime: '09:20',
           fare: 4850.00,
-          totalSeats: 180,
-          availableSeats: 42
+          seatCount: 60
         },
         {
           flightId: 'IN504-261120',
-          flightName: 'IndiSky Express',
+          airlines: 'IndiSky',
           source: 'Chennai',
           destination: 'Delhi',
-          journeyDate: '2026-11-20',
-          departureTime: '14:30:00',
-          arrivalTime: '17:10:00',
+          flightAvailableDate: '2026-11-20',
+          departureTime: '14:30',
+          arrivalTime: '17:10',
           fare: 5200.00,
-          totalSeats: 150,
-          availableSeats: 19
+          seatCount: 45
         }
       ], null, 2)
     },
@@ -130,14 +129,34 @@ export const ApiExplorer: React.FC = () => {
         ]
       }, null, 2),
       sampleResponse: JSON.stringify({
-        pnr: 'KA89412',
-        flightId: 'KA101-261120',
+        pnr: 5474479,
         userId: 'asha01',
-        journeyDate: '2026-11-20',
-        noOfPassengers: 2,
-        totalAmount: 9700.00,
-        status: 'PENDING_PAYMENT',
-        bookingTimestamp: '2026-10-28T14:20:00Z'
+        flightId: 'KA101-261120',
+        airlines: 'Kaveri Air',
+        source: 'Chennai',
+        destination: 'Delhi',
+        bookingDate: '2026-10-28',
+        departureDate: '2026-11-20',
+        departureTime: '06:30',
+        arrivalTime: '09:20',
+        noOfSeats: 2,
+        farePerPassenger: 4850.00,
+        totalFare: 9700.00,
+        paymentStatus: 'PENDING',
+        passengers: [
+          {
+            passengerId: 1,
+            passengerName: 'Asha Kumar',
+            passengerAge: 34,
+            passengerGender: 'Female'
+          },
+          {
+            passengerId: 2,
+            passengerName: 'Rohan Kumar',
+            passengerAge: 8,
+            passengerGender: 'Male'
+          }
+        ]
       }, null, 2)
     },
     {
@@ -146,7 +165,7 @@ export const ApiExplorer: React.FC = () => {
       category: 'BOOKING',
       description: 'Simulates credit card verification and settlement; confirms ticket status to CONFIRMED. Drops CVV/PIN.',
       sampleRequest: JSON.stringify({
-        pnr: 'KA89412',
+        pnr: 5474479,
         cardNumber: 'TESTCARD00003456',
         cardHolderName: 'Asha Kumar',
         cvv: '123',
@@ -156,13 +175,13 @@ export const ApiExplorer: React.FC = () => {
         totalBill: 9700.00
       }, null, 2),
       sampleResponse: JSON.stringify({
-        paymentId: 90214,
-        pnr: 'KA89412',
-        status: 'CONFIRMED',
-        maskedCard: 'XXXXXXXXXXXX3456',
-        cardType: 'VISA',
+        message: 'Mock payment successful. No real money was charged.',
+        status: 'SUCCESS',
+        paymentId: 1,
+        pnr: 5474479,
+        maskedCardNumber: 'XXXXXXXXXXXX3456',
         amountPaid: 9700.00,
-        message: 'Payment verified and ticket confirmed successfully'
+        paymentDate: '2026-10-28T15:10:00'
       }, null, 2)
     },
     {
@@ -171,26 +190,34 @@ export const ApiExplorer: React.FC = () => {
       category: 'BOOKING',
       description: 'Retrieves complete ticket itinerary, flight schedule, passenger list, and payment status by PNR.',
       sampleResponse: JSON.stringify({
-        pnr: 'KA89412',
-        status: 'CONFIRMED',
-        flight: {
-          flightId: 'KA101-261120',
-          flightName: 'Kaveri Air',
-          source: 'Chennai',
-          destination: 'Delhi',
-          departureTime: '06:15:00',
-          arrivalTime: '08:50:00'
-        },
-        user: {
-          userId: 'asha01',
-          name: 'Asha Kumar'
-        },
+        pnr: 5474479,
+        userId: 'asha01',
+        flightId: 'KA101-261120',
+        airlines: 'Kaveri Air',
+        source: 'Chennai',
+        destination: 'Delhi',
+        bookingDate: '2026-10-28',
+        departureDate: '2026-11-20',
+        departureTime: '06:30',
+        arrivalTime: '09:20',
+        noOfSeats: 2,
+        farePerPassenger: 4850.00,
+        totalFare: 9700.00,
+        paymentStatus: 'PAID',
         passengers: [
-          { passengerId: 101, name: 'Asha Kumar', age: 34, gender: 'Female' },
-          { passengerId: 102, name: 'Rohan Kumar', age: 8, gender: 'Male' }
-        ],
-        totalAmount: 9700.00,
-        paymentReference: 90214
+          {
+            passengerId: 1,
+            passengerName: 'Asha Kumar',
+            passengerAge: 34,
+            passengerGender: 'Female'
+          },
+          {
+            passengerId: 2,
+            passengerName: 'Rohan Kumar',
+            passengerAge: 8,
+            passengerGender: 'Male'
+          }
+        ]
       }, null, 2)
     },
     {

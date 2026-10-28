@@ -4,10 +4,7 @@ import { SectionWrapper } from './SectionWrapper'
 interface TeamMember {
   name: string
   studentId: string
-  role: string
-  isLead?: boolean
   initials: string
-  responsibilities: string
 }
 
 export const Team: React.FC = () => {
@@ -15,45 +12,32 @@ export const Team: React.FC = () => {
     {
       name: 'Saqib Ahmad Bhat',
       studentId: '950823104052',
-      role: 'Team Lead',
-      isLead: true,
-      initials: 'SB',
-      responsibilities: 'Architecture design, Spring Boot REST controllers, matrix parameter integration, and CI/CD pipelines.'
+      initials: 'SB'
     },
     {
       name: 'Vijaya Kumar',
       studentId: '950823104064',
-      role: 'Developer',
-      initials: 'VK',
-      responsibilities: 'Flight search engine, matrix variable binding algorithms, and airport destination queries.'
+      initials: 'VK'
     },
     {
       name: 'Vinayagam S',
       studentId: '950823104065',
-      role: 'Developer',
-      initials: 'VS',
-      responsibilities: 'Booking lifecycle management, atomic seat reservations, and PNR generator implementation.'
+      initials: 'VS'
     },
     {
       name: 'Kannan P',
       studentId: '950823104021',
-      role: 'Developer',
-      initials: 'KP',
-      responsibilities: 'Flyway database schema versioning, JPA entity mappings, and MySQL constraints.'
+      initials: 'KP'
     },
     {
       name: 'Alagesh Pandi P',
       studentId: '950823104005',
-      role: 'Developer',
-      initials: 'AP',
-      responsibilities: 'Mock credit card payment processing, Luhn algorithm verification, and security masking.'
+      initials: 'AP'
     },
     {
       name: 'Aqib Majeed',
       studentId: '950823104007',
-      role: 'Developer',
-      initials: 'AM',
-      responsibilities: 'JSR-380 input validation constraints, user authentication, and BCrypt integration.'
+      initials: 'AM'
     }
   ]
 
@@ -72,16 +56,10 @@ export const Team: React.FC = () => {
           {members.map((member) => (
             <div
               key={member.studentId}
-              className={`glass-panel member-card ${member.isLead ? 'lead-card' : ''}`}
+              className="glass-panel member-card"
             >
-              {member.isLead && (
-                <div className="lead-ribbon">
-                  <span className="lead-star">★</span> TEAM LEAD
-                </div>
-              )}
-
               <div className="member-avatar-wrap">
-                <div className={`member-avatar ${member.isLead ? 'lead-avatar' : ''}`}>
+                <div className="member-avatar">
                   <span className="avatar-initials font-mono">{member.initials}</span>
                 </div>
               </div>
@@ -93,14 +71,6 @@ export const Team: React.FC = () => {
                   <span className="id-label">STUDENT ID:</span>
                   <span className="id-val">{member.studentId}</span>
                 </div>
-
-                <div className="member-role-tag">
-                  <span className={`badge ${member.isLead ? 'badge-cyan' : 'badge-ice'}`}>
-                    {member.role}
-                  </span>
-                </div>
-
-                <p className="member-desc">{member.responsibilities}</p>
               </div>
             </div>
           ))}
@@ -134,34 +104,8 @@ export const Team: React.FC = () => {
         }
         .member-card:hover {
           transform: translateY(-5px);
-        }
-        .lead-card {
           border-color: var(--cyan);
-          background: linear-gradient(180deg, rgba(13, 27, 42, 0.85) 0%, rgba(15, 23, 42, 0.75) 100%);
           box-shadow: 0 10px 30px -10px rgba(0, 245, 255, 0.25);
-        }
-        .lead-card:hover {
-          box-shadow: 0 16px 45px -10px rgba(0, 245, 255, 0.45);
-        }
-        .lead-ribbon {
-          position: absolute;
-          top: 1rem;
-          right: 1rem;
-          background: rgba(0, 245, 255, 0.15);
-          color: var(--cyan);
-          border: 1px solid rgba(0, 245, 255, 0.4);
-          font-family: var(--font-mono);
-          font-size: 0.6875rem;
-          font-weight: 800;
-          letter-spacing: 0.08em;
-          padding: 0.25rem 0.6rem;
-          border-radius: 9999px;
-          display: flex;
-          align-items: center;
-          gap: 0.3rem;
-        }
-        .lead-star {
-          color: #fbbf24;
         }
         .member-avatar-wrap {
           margin-bottom: 1.25rem;
@@ -178,12 +122,8 @@ export const Team: React.FC = () => {
           transition: border-color 0.2s ease, transform 0.2s ease;
         }
         .member-card:hover .member-avatar {
-          border-color: var(--ice-blue);
-          transform: scale(1.05);
-        }
-        .lead-avatar {
           border-color: var(--cyan);
-          box-shadow: 0 0 18px var(--cyan-glow);
+          transform: scale(1.05);
         }
         .avatar-initials {
           font-size: 1.35rem;
@@ -205,7 +145,6 @@ export const Team: React.FC = () => {
           background: rgba(0, 0, 0, 0.4);
           padding: 0.25rem 0.65rem;
           border-radius: 4px;
-          margin-bottom: 0.75rem;
           border: 1px solid rgba(255, 255, 255, 0.06);
         }
         .id-label {
@@ -215,14 +154,6 @@ export const Team: React.FC = () => {
         .id-val {
           color: var(--ice-blue);
           font-weight: 600;
-        }
-        .member-role-tag {
-          margin-bottom: 1rem;
-        }
-        .member-desc {
-          font-size: 0.85rem;
-          color: var(--text-muted);
-          line-height: 1.55;
         }
       `}</style>
     </SectionWrapper>
