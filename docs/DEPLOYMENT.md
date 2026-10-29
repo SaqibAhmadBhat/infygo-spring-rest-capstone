@@ -174,25 +174,47 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3
 
 | Component | Status | Details |
 |---|---|---|
-| **Presentation Website** | **LIVE** | Deployed on GitHub Pages via Actions: [View Site](https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/) |
-| **Local Spring Boot API** | **OPERATIONAL** | Context path `/InfyGo` running on port 8080 with H2 or MySQL |
-| **Docker Packaging** | **READY** | Multi-stage `Dockerfile` with non-root security and health check |
-| **Public Backend API** | **PENDING** | Prepared for deployment; requires manual cloud host & database provisioning |
+| **Presentation Website** | **LIVE (VERIFIED)** | Deployed on GitHub Pages via Actions: [https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/](https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/) |
+| **Local Spring Boot API** | **OPERATIONAL (VERIFIED)** | Context path `/InfyGo` running on port 8080 with H2 or MySQL (`{"status":"UP"}`) |
+| **Docker Packaging** | **READY (VERIFIED)** | Multi-stage `Dockerfile` with non-root security and health check |
+| **Public Backend API** | **PREPARED (BLOCKED on Cloud Account)** | Configuration and manifests (`railway.json`, `render.yaml`) ready; awaits user-provisioned cloud credentials |
 
 > [!IMPORTANT]
 > The Spring Boot REST API is **not** currently hosted on a public cloud service.
-> Public deployment requires manually setting up an external application host (e.g. Railway, Render, Fly.io, AWS, GCP)
-> along with persistent MySQL database credentials supplied via environment variables.
+> Public deployment requires an external cloud hosting account (e.g. Railway, Render, Fly.io, AWS, GCP)
+> and a persistent managed MySQL instance. All production configurations, environment variable fallbacks,
+> CORS mappings, and platform manifests have been prepared in the repository.
 
-### Option A: Railway / Render / Fly.io
+### 1-Click Cloud Deployment Workflows
 
-1. Push the repository to GitHub.
-2. Create a new project on your chosen platform and connect the GitHub repository.
-3. Set environment variables (`SPRING_DATASOURCE_URL`, username, password) in the platform dashboard.
-4. The platform will build the Docker image using the `Dockerfile` in the root and deploy.
-5. Add a managed MySQL instance or use the platform's built-in database add-on.
+#### Option 1: Railway (Recommended for Docker + MySQL)
 
-### Option B: Any Linux VPS (Ubuntu/Debian)
+The repository includes a ready-to-use [`railway.json`](../railway.json) configuration:
+
+1. Create a free account or log in at [railway.com](https://railway.com).
+2. Click **New Project** → **Deploy from GitHub repo** → select `infygo-spring-rest-capstone`.
+3. In the project canvas, click **New** → **Database** → **Add MySQL**.
+4. Railway automatically attaches a persistent storage volume to MySQL.
+5. In your backend service's **Variables** tab, add:
+   - `SPRING_DATASOURCE_URL`: `jdbc:mysql://${{MySQL.MYSQLHOST}}:${{MySQL.MYSQLPORT}}/${{MySQL.MYSQLDATABASE}}?useSSL=false&allowPublicKeyRetrieval=true`
+   - `SPRING_DATASOURCE_USERNAME`: `${{MySQL.MYSQLUSER}}`
+   - `SPRING_DATASOURCE_PASSWORD`: `${{MySQL.MYSQLPASSWORD}}`
+   - `INFYGO_SEED_DEMO_DATA`: `true`
+6. In **Settings** → **Networking**, click **Generate Domain** to get your public HTTPS URL (e.g., `https://infygo-backend-production.up.railway.app`).
+7. Once deployed, verify via:
+   - `GET https://<your-domain>/InfyGo/actuator/health`
+   - `GET https://<your-domain>/InfyGo/swagger-ui/index.html`
+
+#### Option 2: Render Blueprint
+
+The repository includes a ready-to-use [`render.yaml`](../render.yaml) blueprint:
+
+1. Sign in to [render.com](https://render.com).
+2. Click **New +** → **Blueprint** → connect `SaqibAhmadBhat/infygo-spring-rest-capstone`.
+3. Provide your external managed MySQL credentials (or an Aiven/PlanetScale connection string) for `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and `SPRING_DATASOURCE_PASSWORD`.
+4. Render will automatically build the `Dockerfile` and configure health checks at `/InfyGo/actuator/health`.
+
+#### Option 3: Any Linux VPS (Ubuntu/Debian)
 
 ```bash
 # Install Java 17 and Docker on the server
@@ -206,7 +228,7 @@ docker compose up -d mysql
 java -jar target/*.jar
 ```
 
-### Option C: GCP Cloud Run / AWS Fargate / Azure Container Apps
+#### Option 4: GCP Cloud Run / AWS Fargate / Azure Container Apps
 
 1. Build and push the image to a container registry (GCR, ECR, ACR).
 2. Create a managed MySQL instance (Cloud SQL, RDS, Azure Database for MySQL).

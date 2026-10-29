@@ -303,12 +303,12 @@ docker run -d \
 
 | Component | Status | Details |
 |---|---|---|
-| **Presentation Website** | **LIVE** | Automated deployment on GitHub Pages: [View Site](https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/) |
-| **Local Spring Boot API** | **OPERATIONAL** | Context path `/InfyGo` on port 8080 (`{"status":"UP"}`) |
-| **Container Image** | **READY** | Multi-stage `Dockerfile` with non-root security and health check |
-| **Public Backend API** | **PENDING** | Prepared for deployment; requires manual external cloud host & managed database |
+| **Presentation Website** | **LIVE (VERIFIED)** | Automated deployment on GitHub Pages: [https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/](https://saqibahmadbhat.github.io/infygo-spring-rest-capstone/) |
+| **Local Spring Boot API** | **OPERATIONAL (VERIFIED)** | Context path `/InfyGo` on port 8080 (`{"status":"UP"}`) with H2 or MySQL 8.4 |
+| **Container Image** | **READY (VERIFIED)** | Multi-stage `Dockerfile` with non-root security and health check |
+| **Public Backend API** | **PREPARED (BLOCKED on Cloud Account)** | Manifests (`railway.json`, `render.yaml`) and CORS configured; awaits user cloud tenant & database |
 
-See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for full deployment guidance including cloud options.
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for step-by-step 1-click cloud deployment workflows (Railway, Render, AWS, GCP).
 
 ---
 
